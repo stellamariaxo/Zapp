@@ -1,751 +1,98 @@
-import { useState, useEffect, useRef, useCallback } from “react”;
-
-const LANGUAGES = {
-id: { name:“🇮🇩 Bahasa Indonesia”,code:“id”,home:“Beranda”,live:“Siaran”,shop:“Belanja”,pay:“Bayar”,chat:“Pesan”,ai:“AI”,me:“Profil”,balance:“Saldo”,withdraw:“Tarik Dana”,topup:“Isi Saldo”,send:“Kirim”,history:“Riwayat”,product:“Produk”,addcart:“Tambah Keranjang”,buy:“Beli Sekarang”,checkout:“Checkout”,admin:“Admin”,seller:“Penjual”,fee:“Biaya Admin”,quantum:“Optimalkan”,success:“Berhasil”,error:“Gagal”,confirm:“Konfirmasi”,cancel:“Batal”,enterAmount:“Masukkan Jumlah”,insufficientBal:“Saldo Tidak Cukup”,withdrawSuccess:“Penarikan Berhasil”,paymentSuccess:“Pembayaran Berhasil”,aiPlaceholder:“Tanya apa saja…”,send2:“Kirim”,typing:“Mengetik…”,followers:“Pengikut”,following:“Mengikuti”,likes:“Suka”,live2:“Sedang Live”,viewers:“Penonton”,gift:“Hadiah”,share:“Bagikan”,comment:“Komentar”,welcome:“Selamat Datang”,notify:“Notifikasi” },
-en: { name:“🇺🇸 English”,code:“en”,home:“Home”,live:“Live”,shop:“Shop”,pay:“Pay”,chat:“Chat”,ai:“AI”,me:“Me”,balance:“Balance”,withdraw:“Withdraw”,topup:“Top Up”,send:“Send”,history:“History”,product:“Product”,addcart:“Add to Cart”,buy:“Buy Now”,checkout:“Checkout”,admin:“Admin”,seller:“Seller”,fee:“Admin Fee”,quantum:“Optimize”,success:“Success”,error:“Failed”,confirm:“Confirm”,cancel:“Cancel”,enterAmount:“Enter Amount”,insufficientBal:“Insufficient Balance”,withdrawSuccess:“Withdrawal Successful”,paymentSuccess:“Payment Successful”,aiPlaceholder:“Ask anything…”,send2:“Send”,typing:“Typing…”,followers:“Followers”,following:“Following”,likes:“Likes”,live2:“Going Live”,viewers:“Viewers”,gift:“Gift”,share:“Share”,comment:“Comment”,welcome:“Welcome”,notify:“Notifications” },
-ar: { name:“🇸🇦 العربية”,code:“ar”,home:“الرئيسية”,live:“مباشر”,shop:“تسوق”,pay:“الدفع”,chat:“الدردشة”,ai:“ذكاء اصطناعي”,me:“أنا”,balance:“الرصيد”,withdraw:“سحب”,topup:“شحن”,send:“إرسال”,history:“السجل”,product:“منتج”,addcart:“أضف للسلة”,buy:“اشتر الآن”,checkout:“الدفع”,admin:“مشرف”,seller:“بائع”,fee:“رسوم”,quantum:“تحسين”,success:“نجاح”,error:“فشل”,confirm:“تأكيد”,cancel:“إلغاء”,enterAmount:“أدخل المبلغ”,insufficientBal:“رصيد غير كافٍ”,withdrawSuccess:“تم السحب”,paymentSuccess:“تمت الدفع”,aiPlaceholder:“اسأل أي شيء…”,send2:“إرسال”,typing:“يكتب…”,followers:“متابعون”,following:“يتابع”,likes:“إعجابات”,live2:“مباشر الآن”,viewers:“مشاهدون”,gift:“هدية”,share:“مشاركة”,comment:“تعليق”,welcome:“مرحباً”,notify:“إشعارات” },
-zh: { name:“🇨🇳 中文”,code:“zh”,home:“首页”,live:“直播”,shop:“商城”,pay:“支付”,chat:“聊天”,ai:“AI”,me:“我的”,balance:“余额”,withdraw:“提现”,topup:“充值”,send:“发送”,history:“历史”,product:“商品”,addcart:“加入购物车”,buy:“立即购买”,checkout:“结账”,admin:“管理员”,seller:“卖家”,fee:“手续费”,quantum:“优化”,success:“成功”,error:“失败”,confirm:“确认”,cancel:“取消”,enterAmount:“输入金额”,insufficientBal:“余额不足”,withdrawSuccess:“提现成功”,paymentSuccess:“支付成功”,aiPlaceholder:“问任何问题…”,send2:“发送”,typing:“输入中…”,followers:“粉丝”,following:“关注”,likes:“点赞”,live2:“正在直播”,viewers:“观众”,gift:“礼物”,share:“分享”,comment:“评论”,welcome:“欢迎”,notify:“通知” },
-ja: { name:“🇯🇵 日本語”,code:“ja”,home:“ホーム”,live:“ライブ”,shop:“ショップ”,pay:“決済”,chat:“チャット”,ai:“AI”,me:“マイページ”,balance:“残高”,withdraw:“出金”,topup:“チャージ”,send:“送る”,history:“履歴”,product:“商品”,addcart:“カートに追加”,buy:“今すぐ購入”,checkout:“会計”,admin:“管理者”,seller:“販売者”,fee:“手数料”,quantum:“最適化”,success:“成功”,error:“失敗”,confirm:“確認”,cancel:“キャンセル”,enterAmount:“金額を入力”,insufficientBal:“残高不足”,withdrawSuccess:“出金成功”,paymentSuccess:“決済完了”,aiPlaceholder:“何でも聞いてください…”,send2:“送信”,typing:“入力中…”,followers:“フォロワー”,following:“フォロー”,likes:“いいね”,live2:“ライブ中”,viewers:“視聴者”,gift:“ギフト”,share:“シェア”,comment:“コメント”,welcome:“ようこそ”,notify:“通知” },
-es: { name:“🇪🇸 Español”,code:“es”,home:“Inicio”,live:“En Vivo”,shop:“Tienda”,pay:“Pagar”,chat:“Chat”,ai:“IA”,me:“Perfil”,balance:“Saldo”,withdraw:“Retirar”,topup:“Recargar”,send:“Enviar”,history:“Historial”,product:“Producto”,addcart:“Al Carrito”,buy:“Comprar”,checkout:“Pagar”,admin:“Admin”,seller:“Vendedor”,fee:“Comisión”,quantum:“Optimizar”,success:“Éxito”,error:“Error”,confirm:“Confirmar”,cancel:“Cancelar”,enterAmount:“Ingrese monto”,insufficientBal:“Saldo insuficiente”,withdrawSuccess:“Retiro exitoso”,paymentSuccess:“Pago exitoso”,aiPlaceholder:“Pregunta lo que quieras…”,send2:“Enviar”,typing:“Escribiendo…”,followers:“Seguidores”,following:“Siguiendo”,likes:“Me gusta”,live2:“En vivo”,viewers:“Espectadores”,gift:“Regalo”,share:“Compartir”,comment:“Comentar”,welcome:“Bienvenido”,notify:“Notificaciones” },
-fr: { name:“🇫🇷 Français”,code:“fr”,home:“Accueil”,live:“En Direct”,shop:“Boutique”,pay:“Payer”,chat:“Messages”,ai:“IA”,me:“Profil”,balance:“Solde”,withdraw:“Retrait”,topup:“Recharger”,send:“Envoyer”,history:“Historique”,product:“Produit”,addcart:“Au panier”,buy:“Acheter”,checkout:“Commander”,admin:“Admin”,seller:“Vendeur”,fee:“Commission”,quantum:“Optimiser”,success:“Succès”,error:“Erreur”,confirm:“Confirmer”,cancel:“Annuler”,enterAmount:“Entrer le montant”,insufficientBal:“Solde insuffisant”,withdrawSuccess:“Retrait réussi”,paymentSuccess:“Paiement réussi”,aiPlaceholder:“Posez votre question…”,send2:“Envoyer”,typing:“En train d’écrire…”,followers:“Abonnés”,following:“Abonnements”,likes:“J’aime”,live2:“En direct”,viewers:“Spectateurs”,gift:“Cadeau”,share:“Partager”,comment:“Commenter”,welcome:“Bienvenue”,notify:“Notifications” },
-ko: { name:“🇰🇷 한국어”,code:“ko”,home:“홈”,live:“라이브”,shop:“쇼핑”,pay:“결제”,chat:“채팅”,ai:“AI”,me:“내정보”,balance:“잔액”,withdraw:“출금”,topup:“충전”,send:“전송”,history:“내역”,product:“상품”,addcart:“장바구니”,buy:“지금 구매”,checkout:“결제”,admin:“관리자”,seller:“판매자”,fee:“수수료”,quantum:“최적화”,success:“성공”,error:“실패”,confirm:“확인”,cancel:“취소”,enterAmount:“금액 입력”,insufficientBal:“잔액 부족”,withdrawSuccess:“출금 성공”,paymentSuccess:“결제 완료”,aiPlaceholder:“무엇이든 물어보세요…”,send2:“전송”,typing:“입력 중…”,followers:“팔로워”,following:“팔로잉”,likes:“좋아요”,live2:“라이브 중”,viewers:“시청자”,gift:“선물”,share:“공유”,comment:“댓글”,welcome:“환영합니다”,notify:“알림” },
-pt: { name:“🇧🇷 Português”,code:“pt”,home:“Início”,live:“Ao Vivo”,shop:“Loja”,pay:“Pagar”,chat:“Chat”,ai:“IA”,me:“Perfil”,balance:“Saldo”,withdraw:“Sacar”,topup:“Recarregar”,send:“Enviar”,history:“Histórico”,product:“Produto”,addcart:“No carrinho”,buy:“Comprar”,checkout:“Finalizar”,admin:“Admin”,seller:“Vendedor”,fee:“Taxa”,quantum:“Otimizar”,success:“Sucesso”,error:“Erro”,confirm:“Confirmar”,cancel:“Cancelar”,enterAmount:“Digite o valor”,insufficientBal:“Saldo insuficiente”,withdrawSuccess:“Saque realizado”,paymentSuccess:“Pagamento realizado”,aiPlaceholder:“Pergunte qualquer coisa…”,send2:“Enviar”,typing:“Digitando…”,followers:“Seguidores”,following:“Seguindo”,likes:“Curtidas”,live2:“Ao vivo”,viewers:“Espectadores”,gift:“Presente”,share:“Compartilhar”,comment:“Comentar”,welcome:“Bem-vindo”,notify:“Notificações” },
-hi: { name:“🇮🇳 हिन्दी”,code:“hi”,home:“होम”,live:“लाइव”,shop:“शॉप”,pay:“भुगतान”,chat:“चैट”,ai:“AI”,me:“प्रोफ़ाइल”,balance:“बैलेंस”,withdraw:“निकालें”,topup:“टॉप अप”,send:“भेजें”,history:“इतिहास”,product:“उत्पाद”,addcart:“कार्ट में”,buy:“अभी खरीदें”,checkout:“चेकआउट”,admin:“एडमिन”,seller:“विक्रेता”,fee:“शुल्क”,quantum:“अनुकूलित”,success:“सफल”,error:“विफल”,confirm:“पुष्टि”,cancel:“रद्द”,enterAmount:“राशि दर्ज करें”,insufficientBal:“अपर्याप्त बैलेंस”,withdrawSuccess:“निकासी सफल”,paymentSuccess:“भुगतान सफल”,aiPlaceholder:“कुछ भी पूछें…”,send2:“भेजें”,typing:“टाइप कर रहे…”,followers:“फॉलोअर्स”,following:“फॉलोइंग”,likes:“लाइक्स”,live2:“अभी लाइव”,viewers:“दर्शक”,gift:“उपहार”,share:“शेयर”,comment:“टिप्पणी”,welcome:“स्वागत है”,notify:“सूचनाएं” },
-de: { name:“🇩🇪 Deutsch”,code:“de”,home:“Start”,live:“Live”,shop:“Shop”,pay:“Zahlen”,chat:“Chat”,ai:“KI”,me:“Profil”,balance:“Guthaben”,withdraw:“Abheben”,topup:“Aufladen”,send:“Senden”,history:“Verlauf”,product:“Produkt”,addcart:“In den Warenkorb”,buy:“Jetzt kaufen”,checkout:“Bestellen”,admin:“Admin”,seller:“Verkäufer”,fee:“Gebühr”,quantum:“Optimieren”,success:“Erfolg”,error:“Fehler”,confirm:“Bestätigen”,cancel:“Abbrechen”,enterAmount:“Betrag eingeben”,insufficientBal:“Guthaben reicht nicht”,withdrawSuccess:“Abhebung erfolgreich”,paymentSuccess:“Zahlung erfolgreich”,aiPlaceholder:“Frag mich alles…”,send2:“Senden”,typing:“Schreibt…”,followers:“Abonnenten”,following:“Folgt”,likes:“Gefällt mir”,live2:“Jetzt live”,viewers:“Zuschauer”,gift:“Geschenk”,share:“Teilen”,comment:“Kommentar”,welcome:“Willkommen”,notify:“Benachrichtigungen” },
-ru: { name:“🇷🇺 Русский”,code:“ru”,home:“Главная”,live:“Прямой эфир”,shop:“Магазин”,pay:“Оплата”,chat:“Чат”,ai:“ИИ”,me:“Профиль”,balance:“Баланс”,withdraw:“Вывод”,topup:“Пополнить”,send:“Отправить”,history:“История”,product:“Товар”,addcart:“В корзину”,buy:“Купить”,checkout:“Оформить”,admin:“Админ”,seller:“Продавец”,fee:“Комиссия”,quantum:“Оптимизировать”,success:“Успех”,error:“Ошибка”,confirm:“Подтвердить”,cancel:“Отмена”,enterAmount:“Введите сумму”,insufficientBal:“Недостаточно средств”,withdrawSuccess:“Вывод выполнен”,paymentSuccess:“Оплата прошла”,aiPlaceholder:“Спросите что угодно…”,send2:“Отправить”,typing:“Печатает…”,followers:“Подписчики”,following:“Подписки”,likes:“Нравится”,live2:“Прямой эфир”,viewers:“Зрители”,gift:“Подарок”,share:“Поделиться”,comment:“Комментарий”,welcome:“Добро пожаловать”,notify:“Уведомления” },
-};
-
-const PRODUCTS = [
-{id:1,name:“Sneakers Pro X”,price:850000,img:“👟”,seller:“seller_1”,sold:1240,rating:4.8,stock:50,cat:“Fashion”},
-{id:2,name:“Wireless Earbuds Ultra”,price:450000,img:“🎧”,seller:“seller_2”,sold:890,rating:4.9,stock:30,cat:“Elektronik”},
-{id:3,name:“Smart Watch Series 7”,price:1200000,img:“⌚”,seller:“seller_1”,sold:560,rating:4.7,stock:15,cat:“Elektronik”},
-{id:4,name:“Mechanical Keyboard”,price:680000,img:“⌨️”,seller:“seller_3”,sold:320,rating:4.6,stock:25,cat:“Gaming”},
-{id:5,name:“Gaming Mouse RGB”,price:320000,img:“🖱️”,seller:“seller_2”,sold:780,rating:4.5,stock:40,cat:“Gaming”},
-{id:6,name:“4K Webcam Pro”,price:540000,img:“📷”,seller:“seller_3”,sold:210,rating:4.8,stock:20,cat:“Elektronik”},
-{id:7,name:“ANC Headphone”,price:990000,img:“🎵”,seller:“seller_1”,sold:430,rating:4.9,stock:12,cat:“Elektronik”},
-{id:8,name:“LED Ring Light”,price:180000,img:“💡”,seller:“seller_2”,sold:1800,rating:4.6,stock:80,cat:“Aksesori”},
-];
-
-const FEEDS = [
-{id:1,user:”@techguru_id”,avatar:“🧑‍💻”,desc:“Unboxing produk terbaru 2026 yang bikin melongo! 🔥 Wajib punya nih!”,likes:24800,comments:1204,shares:890,productId:1},
-{id:2,user:”@fashionista.co”,avatar:“👗”,desc:“OOTD hari ini pake Sneakers Pro X — comfy banget buat ngantor ✨”,likes:18500,comments:930,shares:412,productId:null},
-{id:3,user:”@gamerpro_gg”,avatar:“🎮”,desc:“Setup gaming ultimate 2026! Keyboard mechanical ini game changer! 🏆”,likes:32100,comments:2100,shares:1800,productId:4},
-{id:4,user:”@cookingwith_me”,avatar:“👨‍🍳”,desc:“Resep viral yang bikin nagih 🍜 Rekam pake webcam 4K biar keliatan detail!”,likes:9800,comments:674,shares:300,productId:6},
-];
-
-const LIVE_STREAMS = [
-{id:1,user:”@dropship_master”,avatar:“🛒”,viewersBase:12400,title:“Flash Sale Gila-gilaan!”},
-{id:2,user:”@music_live”,avatar:“🎸”,viewersBase:8900,title:“Konser Malam Ini”},
-{id:3,user:”@esports_pro”,avatar:“🏆”,viewersBase:23100,title:“Grand Tournament”},
-{id:4,user:”@beauty_queen”,avatar:“💄”,viewersBase:15600,title:“Tutorial Makeup”},
-];
-
-const CONTACTS = [
-{id:1,name:“Rina Hartati”,avatar:“👩”,lastMsg:“Kapan barangnya sampai?”,time:“09:42”,unread:2},
-{id:2,name:“Budi Santoso”,avatar:“👨”,lastMsg:“Deal ya boss 🤝”,time:“08:15”,unread:0},
-{id:3,name:“Support ZAPP”,avatar:“🤖”,lastMsg:“Ada yang bisa kami bantu?”,time:“Kemarin”,unread:1},
-{id:4,name:“Dewi Rahayu”,avatar:“🧕”,lastMsg:“Makasih ya udah beli! ⭐”,time:“Senin”,unread:0},
-];
-
-const SELLERS_INIT = {
-seller_1:{name:“TechStore ID”,balance:0,totalEarned:0,bank:“BCA ****1234”},
-seller_2:{name:“AudioWorld”,balance:0,totalEarned:0,bank:“Mandiri ****5678”},
-seller_3:{name:“GadgetHub”,balance:0,totalEarned:0,bank:“BNI ****9012”},
-};
-
-const sanitize = s => typeof s!==“string”?””:s.replace(/[<>&”’`]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;","`”:”`”}[c]));
-const validateAmt = v => { const n=Number(v); return !isNaN(n)&&n>0&&n<=1e9&&Number.isFinite(n); };
-const fmtRp = n => `Rp ${Number(n).toLocaleString("id-ID")}`;
-
-const quantumOptimize = p => ({
-bestPrice: Math.round(p.price * (0.94 + Math.random()*0.05)),
-bestTime: [“07:00”,“12:30”,“19:30”,“21:00”][Math.floor(Math.random()*4)],
-target: [“Gen Z 18-24”,“Millennial 25-34”,“Professional 30-45”,“Ibu Rumah Tangga 28-40”][Math.floor(Math.random()*4)],
-boost: `+${Math.floor(20+Math.random()*40)}%`,
-demand: Math.floor(68+Math.random()*32),
-competitors: Math.floor(2+Math.random()*8),
-revenue7d: Math.round(p.price * p.sold * (0.01 + Math.random()*0.02)),
-});
-
-const C = {
-black:”#080808”, dark:”#111111”, card:”#161616”, card2:”#1c1c1c”,
-border:”#242424”, text:”#f0f0f0”, muted:”#555555”, muted2:”#888888”,
-orange:”#f97316”, orangeL:”#fb923c”, orangeD:”#ea580c”,
-white:”#ffffff”, green:”#22c55e”, red:”#ef4444”, purple:”#7c3aed”,
-};
-
-const Toast = ({msg,type,onDone}) => {
-useEffect(()=>{const t=setTimeout(onDone,3000);return()=>clearTimeout(t);},[onDone]);
-const bg = type===“success”?”#15803d”:type===“error”?”#b91c1c”:type===“info”?”#1d4ed8”:C.orange;
-return <div style={{position:“fixed”,top:20,left:“50%”,transform:“translateX(-50%)”,background:bg,color:”#fff”,padding:“11px 22px”,borderRadius:14,zIndex:9999,fontWeight:700,fontSize:13,boxShadow:“0 8px 40px rgba(0,0,0,.5)”,animation:“toastIn .3s ease”,whiteSpace:“nowrap”,maxWidth:340,textAlign:“center”}}>
-{type===“success”?“✅”:type===“error”?“❌”:type===“info”?“ℹ️”:“⚡”} {String(msg).slice(0,80)}
-
-  </div>;
-};
-
-const Modal = ({title,children,onClose}) => (
-
-  <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.88)",zIndex:8000,display:"flex",alignItems:"center",justifyContent:"center",padding:16}} onClick={onClose}>
-    <div style={{background:C.dark,borderRadius:22,padding:22,width:"100%",maxWidth:380,border:`1px solid #2a2a2a`,boxShadow:`0 24px 80px rgba(249,115,22,.12)`}} onClick={e=>e.stopPropagation()}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
-        <span style={{fontWeight:800,fontSize:17,color:C.orange}}>{sanitize(String(title))}</span>
-        <button onClick={onClose} style={{background:"none",border:"none",color:C.muted2,fontSize:22,cursor:"pointer",lineHeight:1}}>✕</button>
-      </div>
-      {children}
-    </div>
-  </div>
-);
-
-const inputSt = {width:“100%”,background:”#181818”,border:`1px solid #2a2a2a`,borderRadius:11,padding:“11px 14px”,color:C.text,fontSize:14,outline:“none”,boxSizing:“border-box”,transition:“border-color .2s”};
-const cardSt = {background:C.card,borderRadius:16,border:`1px solid ${C.border}`,padding:16,marginBottom:12};
-
-const Btn = ({children,onClick,active=true,small=false,full=false,disabled=false,style:s={}}) => (
-<button onClick={onClick} disabled={disabled} style={{
-background:active?C.orange:“transparent”,
-color:active?C.black:C.muted2,
-border:`1.5px solid ${active?C.orange:C.border}`,
-borderRadius:small?9:13,padding:small?“6px 14px”:“11px 20px”,
-fontWeight:700,cursor:disabled?“not-allowed”:“pointer”,
-fontSize:small?12:14,transition:“all .2s”,
-width:full?“100%”:“auto”,
-opacity:disabled?.5:1,…s,
-}}>{children}</button>
-);
+"use client";
+import { useState } from "react";
 
 export default function ZAPPApp() {
-const [lang,setLang]=useState(“id”);
-const [tab,setTab]=useState(“feed”);
-const [showLangMenu,setShowLangMenu]=useState(false);
-const [toast,setToast]=useState(null);
-const [cart,setCart]=useState([]);
-const [adminBalance,setAdminBalance]=useState(0);
-const [sellers,setSellers]=useState(SELLERS_INIT);
-const [txList,setTxList]=useState([]);
-const [userWallet,setUserWallet]=useState(500000);
-const [notifCount,setNotifCount]=useState(3);
-const [clock,setClock]=useState(new Date());
-const [modal,setModal]=useState(null);
-const [quantumData,setQuantumData]=useState(null);
-const [likedFeeds,setLikedFeeds]=useState({});
-const [feedIdx,setFeedIdx]=useState(0);
-const [liveChat,setLiveChat]=useState([
-{user:”@rina99”,msg:“Keren banget! 🔥”,id:1},
-{user:”@budi_g”,msg:“Mau dong! 💯”,id:2},
-{user:”@admin”,msg:“Selamat datang di LIVE ZAPP 🎉”,id:3},
-]);
-const [liveChatInput,setLiveChatInput]=useState(””);
-const [liveViewers,setLiveViewers]=useState(12400);
-const [activeLive,setActiveLive]=useState(0);
-const [chatMsgs,setChatMsgs]=useState({1:[{from:“them”,msg:“Kapan barangnya sampai?”}],2:[{from:“them”,msg:“Deal ya boss 🤝”}],3:[{from:“them”,msg:“Ada yang bisa kami bantu?”}],4:[{from:“them”,msg:“Makasih ya udah beli! ⭐”}]});
-const [activeChat,setActiveChat]=useState(null);
-const [chatInput,setChatInput]=useState(””);
-const [aiMsgs,setAiMsgs]=useState([{role:“assistant”,content:“Halo! Saya ZAPP AI 🤖 — asisten super cerdas kamu. Tanya apa saja tentang belanja, produk, keuangan, atau apapun!”}]);
-const [aiInput,setAiInput]=useState(””);
-const [aiLoading,setAiLoading]=useState(false);
-const [withdrawModal,setWithdrawModal]=useState(null);
-const [withdrawAmt,setWithdrawAmt]=useState(””);
-const [topupAmt,setTopupAmt]=useState(””);
-const [sendModal,setSendModal]=useState(false);
-const [sendAmt,setSendAmt]=useState(””);
-const [sendTo,setSendTo]=useState(””);
-const [shopSearch,setShopSearch]=useState(””);
-const aiEndRef=useRef(null);
-const T=LANGUAGES[lang];
+  const [tab, setTab] = useState("feed");
+  const [cart, setCart] = useState([]);
+  const [balance, setBalance] = useState(500000);
 
-useEffect(()=>{const t=setInterval(()=>setClock(new Date()),1000);return()=>clearInterval(t);},[]);
-useEffect(()=>{const t=setInterval(()=>setLiveViewers(v=>Math.max(500,v+Math.floor((Math.random()-.38)*300))),2800);return()=>clearInterval(t);},[]);
-useEffect(()=>{aiEndRef.current?.scrollIntoView({behavior:“smooth”});},[aiMsgs]);
+  const PRODUCTS = [
+    { id: 1, name: "Sneakers Pro X", price: 850000 },
+    { id: 2, name: "Wireless Earbuds", price: 450000 },
+    { id: 3, name: "Smart Watch", price: 1200000 },
+  ];
 
-const showToast=useCallback((msg,type=“success”)=>setToast({msg,type,id:Date.now()}),[]);
+  const FEEDS = [
+    { id: 1, user: "@techguru", text: "Produk ini gila banget 🔥", productId: 1 },
+    { id: 2, user: "@fashion", text: "OOTD hari ini kece ✨", productId: 2 },
+  ];
 
-const addTx=useCallback((tx)=>setTxList(l=>[{id:Date.now(),…tx,time:new Date().toLocaleTimeString(“id-ID”),date:new Date().toLocaleDateString(“id-ID”)},…l].slice(0,100)),[]);
+  const addToCart = (p) => {
+    setCart((c) => [...c, p]);
+  };
 
-const processPayment=useCallback((product,qty=1)=>{
-const total=product.price*qty;
-if(userWallet<total){showToast(T.insufficientBal,“error”);return false;}
-const fee=Math.round(total*.03);
-const sellerAmt=total-fee;
-setUserWallet(w=>w-total);
-setAdminBalance(b=>b+fee);
-setSellers(s=>({…s,[product.seller]:{…s[product.seller],balance:s[product.seller].balance+sellerAmt,totalEarned:s[product.seller].totalEarned+sellerAmt}}));
-addTx({type:“purchase”,label:product.name,total,fee,sellerAmt,seller:product.seller});
-setNotifCount(n=>n+1);
-showToast(`${T.paymentSuccess} • ${fmtRp(total)}`);
-return true;
-},[userWallet,showToast,T,addTx]);
+  const checkout = () => {
+    const total = cart.reduce((s, i) => s + i.price, 0);
 
-const doWithdraw=useCallback(()=>{
-if(!withdrawModal)return;
-const amt=Number(withdrawAmt);
-if(!validateAmt(amt)){showToast(“Jumlah tidak valid”,“error”);return;}
-if(sellers[withdrawModal].balance<amt){showToast(T.insufficientBal,“error”);return;}
-setSellers(s=>({…s,[withdrawModal]:{…s[withdrawModal],balance:s[withdrawModal].balance-amt}}));
-addTx({type:“withdraw”,label:`${sellers[withdrawModal].name} → ${sellers[withdrawModal].bank}`,total:amt,status:“Processing via Xendit”});
-setWithdrawModal(null);setWithdrawAmt(””);
-showToast(`${T.withdrawSuccess} • ${fmtRp(amt)}`);
-},[withdrawModal,withdrawAmt,sellers,showToast,T,addTx]);
+    if (balance < total) {
+      alert("Saldo tidak cukup");
+      return;
+    }
 
-const doTopup=useCallback(()=>{
-const amt=Number(topupAmt);
-if(!validateAmt(amt)){showToast(“Jumlah tidak valid”,“error”);return;}
-setUserWallet(w=>w+amt);
-addTx({type:“topup”,label:“Top Up Wallet”,total:amt});
-setTopupAmt(””);setModal(null);
-showToast(`Top Up +${fmtRp(amt)}`);
-},[topupAmt,showToast,addTx]);
+    setBalance(balance - total);
+    setCart([]);
+    alert("Checkout berhasil 🚀");
+  };
 
-const doSend=useCallback(()=>{
-const amt=Number(sendAmt);
-if(!validateAmt(amt)){showToast(“Jumlah tidak valid”,“error”);return;}
-if(!sendTo.trim()){showToast(“Masukkan penerima”,“error”);return;}
-if(userWallet<amt){showToast(T.insufficientBal,“error”);return;}
-setUserWallet(w=>w-amt);
-addTx({type:“send”,label:`Kirim → ${sanitize(sendTo)}`,total:amt});
-setSendModal(false);setSendAmt(””);setSendTo(””);
-showToast(`Kirim ${fmtRp(amt)} → ${sanitize(sendTo)}`);
-},[sendAmt,sendTo,userWallet,showToast,T,addTx]);
+  // ===== SCREEN =====
 
-const addToCart=useCallback(p=>{
-setCart(c=>{const ex=c.find(i=>i.id===p.id);return ex?c.map(i=>i.id===p.id?{…i,qty:i.qty+1}:i):[…c,{…p,qty:1}];});
-showToast(`${p.img} ${p.name} → Keranjang`,“info”);
-},[showToast]);
-
-const checkout=useCallback(()=>{
-if(!cart.length)return;
-let ok=true;
-for(const item of cart){if(!processPayment(item,item.qty)){ok=false;break;}}
-if(ok){setCart([]);setModal(null);}
-},[cart,processPayment]);
-
-const doAI=useCallback(async()=>{
-const msg=aiInput.trim();if(!msg||aiLoading)return;
-const safe=sanitize(msg);setAiInput(””);
-const msgs=[…aiMsgs,{role:“user”,content:safe}];
-setAiMsgs(msgs);setAiLoading(true);
-try{
-const r=await fetch(“https://api.anthropic.com/v1/messages”,{
-method:“POST”,headers:{“Content-Type”:“application/json”},
-body:JSON.stringify({model:“claude-sonnet-4-20250514”,max_tokens:1000,
-system:`You are ZAPP AI, a brilliant assistant for ZAPP — the world's #1 super app combining social commerce, live streaming, and fintech. Be helpful, smart, and concise. Reply in the same language as the user (lang code: ${lang}).`,
-messages:msgs.map(m=>({role:m.role,content:m.content}))
-})
-});
-const d=await r.json();
-setAiMsgs(m=>[…m,{role:“assistant”,content:d?.content?.[0]?.text||“Maaf, ada gangguan. Coba lagi.”}]);
-}catch{setAiMsgs(m=>[…m,{role:“assistant”,content:“Koneksi gagal. Periksa internet kamu.”}]);}
-setAiLoading(false);
-},[aiInput,aiLoading,aiMsgs,lang]);
-
-const cartQty=cart.reduce((s,i)=>s+i.qty,0);
-const cartTotal=cart.reduce((s,i)=>s+i.price*i.qty,0);
-const filteredProducts=shopSearch?PRODUCTS.filter(p=>p.name.toLowerCase().includes(shopSearch.toLowerCase())||p.cat.toLowerCase().includes(shopSearch.toLowerCase())):PRODUCTS;
-
-// ── FEED SCREEN ──────────────────────────────
-const FeedScreen=()=>{
-const f=FEEDS[feedIdx];
-const linked=f.productId?PRODUCTS.find(p=>p.id===f.productId):null;
-return(
-<div style={{height:“100%”,display:“flex”,flexDirection:“column”,position:“relative”,overflow:“hidden”,background:`radial-gradient(ellipse at 50% 120%, #1a0800 0%, #080808 70%)`}}>
-<div style={{position:“absolute”,top:10,left:“50%”,transform:“translateX(-50%)”,display:“flex”,gap:6,zIndex:5}}>
-{FEEDS.map((_,i)=><div key={i} style={{width:i===feedIdx?20:6,height:4,borderRadius:2,background:i===feedIdx?C.orange:C.muted,transition:“all .3s”}}/>)}
-</div>
-<div style={{position:“absolute”,inset:0,display:“flex”,alignItems:“center”,justifyContent:“center”,fontSize:100,opacity:.06,pointerEvents:“none”,zIndex:0}}>
-{f.avatar}
-</div>
-<div style={{flex:1,display:“flex”,flexDirection:“column”,justifyContent:“flex-end”,padding:16,zIndex:2}}>
-<div style={{display:“flex”,gap:12,alignItems:“flex-end”}}>
-<div style={{flex:1}}>
-<div style={{display:“flex”,alignItems:“center”,gap:10,marginBottom:8}}>
-<div style={{width:44,height:44,borderRadius:“50%”,background:`linear-gradient(135deg,${C.orange},${C.purple})`,display:“flex”,alignItems:“center”,justifyContent:“center”,fontSize:22,flexShrink:0}}>{f.avatar}</div>
-<div style={{flex:1}}>
-<div style={{fontWeight:800,color:C.white,fontSize:14}}>{f.user}</div>
-<div style={{fontSize:11,color:C.muted2}}>ZAPP Creator ✓</div>
-</div>
-<Btn small active={false} style={{borderColor:C.orange,color:C.orange,fontSize:11}}>+ Follow</Btn>
-</div>
-<div style={{color:C.text,fontSize:14,lineHeight:1.5,marginBottom:10}}>{f.desc}</div>
-{linked&&<div style={{background:“rgba(249,115,22,.13)”,border:`1px solid ${C.orange}`,borderRadius:12,padding:“10px 12px”,display:“flex”,alignItems:“center”,gap:10}}>
-<span style={{fontSize:28}}>{linked.img}</span>
-<div style={{flex:1}}>
-<div style={{fontSize:11,color:C.muted2}}>Produk di video ini</div>
-<div style={{fontWeight:700,color:C.white,fontSize:13}}>{linked.name}</div>
-<div style={{fontWeight:800,color:C.orange}}>{fmtRp(linked.price)}</div>
-</div>
-<Btn small onClick={()=>addToCart(linked)}>Beli</Btn>
-</div>}
-</div>
-<div style={{display:“flex”,flexDirection:“column”,gap:18,alignItems:“center”,paddingBottom:8}}>
-{[
-{icon:likedFeeds[f.id]?“❤️”:“🤍”,val:(likedFeeds[f.id]?f.likes+1:f.likes),fn:()=>setLikedFeeds(l=>({…l,[f.id]:!l[f.id]}))},
-{icon:“💬”,val:f.comments,fn:()=>showToast(`${f.comments} komentar`,“info”)},
-{icon:“🔗”,val:f.shares,fn:()=>showToast(“Link disalin! 🔗”,“info”)},
-{icon:“⭐”,val:“Save”,fn:()=>showToast(“Disimpan! ⭐”,“info”)},
-].map((a,i)=>(
-<div key={i} style={{textAlign:“center”,cursor:“pointer”}} onClick={a.fn}>
-<div style={{fontSize:26,lineHeight:1}}>{a.icon}</div>
-<div style={{fontSize:10,color:C.muted2,fontWeight:700,marginTop:2}}>{typeof a.val===“number”?(a.val>999?(a.val/1000).toFixed(1)+“K”:a.val):a.val}</div>
-</div>
-))}
-</div>
-</div>
-</div>
-<div style={{display:“flex”,gap:8,padding:“0 16px 8px”,zIndex:2}}>
-<Btn active={false} full onClick={()=>setFeedIdx(f=>Math.max(0,f-1))} small style={{flex:1}}>▲</Btn>
-<Btn active full onClick={()=>setFeedIdx(f=>Math.min(FEEDS.length-1,f+1))} small style={{flex:1}}>▼</Btn>
-</div>
-</div>
-);
-};
-
-// ── LIVE SCREEN ──────────────────────────────
-const LiveScreen=()=>{
-const ls=LIVE_STREAMS[activeLive];
-const sendLiveMsg=()=>{
-if(!liveChatInput.trim())return;
-setLiveChat(c=>[…c.slice(-30),{user:”@you”,msg:sanitize(liveChatInput.trim()),id:Date.now()}]);
-setLiveChatInput(””);
-};
-return(
-<div style={{height:“100%”,display:“flex”,flexDirection:“column”}}>
-<div style={{padding:“8px 16px 8px”,flexShrink:0}}>
-<div style={{fontSize:10,color:C.muted2,textTransform:“uppercase”,letterSpacing:1,marginBottom:6}}>🔴 {T.live2}</div>
-<div style={{display:“flex”,gap:8,overflowX:“auto”,paddingBottom:4}}>
-{LIVE_STREAMS.map((s,i)=>(
-<div key={s.id} onClick={()=>setActiveLive(i)} style={{minWidth:90,background:i===activeLive?`rgba(249,115,22,.15)`:C.card,borderRadius:12,border:`1.5px solid ${i===activeLive?C.orange:C.border}`,padding:“8px 10px”,cursor:“pointer”,flexShrink:0,transition:“all .2s”}}>
-<div style={{fontSize:20}}>{s.avatar}</div>
-<div style={{fontSize:10,fontWeight:700,color:C.white,marginTop:2}}>{s.user}</div>
-<div style={{fontSize:9,color:C.orange}}>👁 {(s.viewersBase/1000).toFixed(1)}K</div>
-</div>
-))}
-</div>
-</div>
-<div style={{flex:1,margin:“0 16px”,background:C.card,borderRadius:16,border:`1px solid ${C.border}`,display:“flex”,flexDirection:“column”,overflow:“hidden”,minHeight:0}}>
-<div style={{background:`linear-gradient(90deg,${C.orange},${C.orangeD})`,padding:“8px 14px”,display:“flex”,justifyContent:“space-between”,alignItems:“center”,flexShrink:0}}>
-<span style={{fontWeight:800,color:C.black,fontSize:12}}>🔴 LIVE · {ls.title}</span>
-<span style={{fontWeight:700,color:C.black,fontSize:11}}>👁 {liveViewers.toLocaleString()}</span>
-</div>
-<div style={{flex:1,overflowY:“auto”,padding:10,display:“flex”,flexDirection:“column”,gap:5}}>
-{liveChat.map(c=>(
-<div key={c.id} style={{fontSize:13}}>
-<span style={{color:c.user===”@you”?C.orange:C.orangeL,fontWeight:700}}>{c.user} </span>
-<span style={{color:c.user===”@you”?C.text:C.muted2}}>{c.msg}</span>
-</div>
-))}
-</div>
-<div style={{padding:“8px 10px”,borderTop:`1px solid ${C.border}`,display:“flex”,gap:6,flexShrink:0}}>
-<input value={liveChatInput} onChange={e=>setLiveChatInput(e.target.value)} onKeyDown={e=>e.key===“Enter”&&sendLiveMsg()} placeholder=“Tulis pesan…” style={{…inputSt,flex:1,padding:“7px 10px”,fontSize:12}}/>
-<Btn small onClick={sendLiveMsg} style={{padding:“7px 12px”}}>→</Btn>
-</div>
-</div>
-<div style={{padding:“8px 16px”,display:“flex”,gap:6,justifyContent:“center”,flexShrink:0}}>
-{[“🌹”,“💎”,“🚀”,“👑”,“🔥”,“🎊”].map(g=>(
-<button key={g} onClick={()=>{setLiveChat(c=>[…c.slice(-30),{user:”@you”,msg:`${g} Gift!`,id:Date.now()}]);showToast(`${g} Hadiah dikirim!`,“info”);}} style={{fontSize:20,background:C.card,border:`1px solid ${C.border}`,borderRadius:10,padding:“6px 10px”,cursor:“pointer”}}>{g}</button>
-))}
-</div>
-</div>
-);
-};
-
-// ── SHOP SCREEN ──────────────────────────────
-const ShopScreen=()=>{
-const [qr,setQr]=useState(null);
-return(
-<div style={{height:“100%”,overflowY:“auto”,padding:“0 14px”}}>
-<div style={{position:“sticky”,top:0,background:C.black,paddingBottom:8,paddingTop:4,zIndex:5}}>
-<input value={shopSearch} onChange={e=>setShopSearch(e.target.value)} placeholder=“🔍 Cari produk…” style={{…inputSt,marginBottom:8}}/>
-<div style={{background:`linear-gradient(135deg,${C.orange},${C.purple})`,borderRadius:14,padding:“11px 15px”,display:“flex”,justifyContent:“space-between”,alignItems:“center”}}>
-<div>
-<div style={{fontWeight:800,color:C.white,fontSize:13}}>⚡ Quantum AI Boost</div>
-<div style={{fontSize:10,color:“rgba(255,255,255,.75)”}}>Klik ⚡ pada produk untuk optimalkan penjualan</div>
-</div>
-{cartQty>0&&<Btn small onClick={()=>setModal(“cart”)} style={{background:“rgba(255,255,255,.15)”,border:“none”,color:C.white}}>🛒 {cartQty}</Btn>}
-</div>
-</div>
-{qr&&(
-<div style={{…cardSt,border:`1px solid ${C.purple}`,marginTop:8}}>
-<div style={{fontWeight:800,color:”#a78bfa”,marginBottom:8,fontSize:13}}>⚡ Quantum Result: {qr.name}</div>
-<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:6}}>
-{[[“💰 Harga Optimal”,fmtRp(qr.res.bestPrice)],[“⏰ Waktu Terbaik”,qr.res.bestTime],[“🎯 Target”,qr.res.target],[“📈 Konversi”,qr.res.boost],[“🔥 Demand”,`${qr.res.demand}/100`],[“🏆 Kompetitor”,`${qr.res.competitors} aktif`]].map(([k,v])=>(
-<div key={k} style={{background:C.card2,borderRadius:8,padding:“6px 8px”}}>
-<div style={{fontSize:10,color:C.muted2}}>{k}</div>
-<div style={{fontWeight:800,color:C.white,fontSize:12}}>{v}</div>
-</div>
-))}
-</div>
-<div style={{fontSize:11,color:C.green,marginTop:8}}>Estimasi Revenue 7 Hari: {fmtRp(qr.res.revenue7d)}</div>
-<button onClick={()=>setQr(null)} style={{marginTop:8,background:“none”,border:“none”,color:C.muted2,cursor:“pointer”,fontSize:12}}>✕ Tutup</button>
-</div>
-)}
-<div style={{display:“grid”,gridTemplateColumns:“1fr 1fr”,gap:10,marginTop:10,paddingBottom:16}}>
-{filteredProducts.map(p=>(
-<div key={p.id} style={{...cardSt,padding:12,margin:0}}>
-<div style={{position:“relative”}}>
-<div style={{textAlign:“center”,fontSize:36,marginBottom:6}}>{p.img}</div>
-<span style={{position:“absolute”,top:0,right:0,background:C.card2,borderRadius:6,padding:“2px 6px”,fontSize:9,color:C.muted2,fontWeight:600}}>{p.cat}</span>
-</div>
-<div style={{fontWeight:700,fontSize:12,color:C.text,marginBottom:3,lineHeight:1.3}}>{p.name}</div>
-<div style={{fontSize:10,color:C.muted2,marginBottom:3}}>⭐{p.rating} · {p.sold>999?(p.sold/1000).toFixed(1)+“K”:p.sold} terjual · Stok {p.stock}</div>
-<div style={{fontWeight:800,color:C.orange,fontSize:14,marginBottom:8}}>{fmtRp(p.price)}</div>
-<div style={{display:“flex”,gap:5}}>
-<Btn small active={false} onClick={()=>addToCart(p)} style={{flex:1,fontSize:10,borderColor:C.orange,color:C.orange}}>+ Keranjang</Btn>
-<button onClick={()=>setQr({name:p.name,res:quantumOptimize(p)})} style={{background:`linear-gradient(135deg,${C.orange},${C.purple})`,border:“none”,borderRadius:8,padding:“5px 9px”,cursor:“pointer”,fontSize:13}}>⚡</button>
-</div>
-</div>
-))}
-</div>
-</div>
-);
-};
-
-// ── PAY SCREEN ───────────────────────────────
-const PayScreen=()=>(
-<div style={{height:“100%”,overflowY:“auto”,padding:“0 14px”}}>
-<div style={{background:`linear-gradient(135deg,#1a0500,#200a00)`,border:`1px solid ${C.orange}`,borderRadius:22,padding:20,marginBottom:14,position:“relative”,overflow:“hidden”}}>
-<div style={{position:“absolute”,right:-20,top:-20,fontSize:100,opacity:.05}}>💳</div>
-<div style={{fontSize:10,color:C.muted2,marginBottom:4,textTransform:“uppercase”,letterSpacing:1}}>ZAPP Wallet · {T.name}</div>
-<div style={{fontSize:30,fontWeight:900,color:C.orange,marginBottom:2}}>{fmtRp(userWallet)}</div>
-<div style={{fontSize:11,color:C.muted2}}>{clock.toLocaleString(“id-ID”)}</div>
-<div style={{display:“flex”,gap:8,marginTop:14,flexWrap:“wrap”}}>
-{[{icon:“⬆️”,label:T.topup,fn:()=>setModal(“topup”)},{icon:“➡️”,label:T.send,fn:()=>setSendModal(true)},{icon:“📊”,label:T.history,fn:()=>setModal(“history”)},{icon:“🔍”,label:“Scan QR”,fn:()=>showToast(“Scan QR aktif”,“info”)}].map((a,i)=>(
-<button key={i} onClick={a.fn} style={{flex:1,minWidth:60,background:“rgba(249,115,22,.1)”,border:`1px solid rgba(249,115,22,.25)`,borderRadius:12,padding:“8px 4px”,color:C.text,fontWeight:700,fontSize:10,cursor:“pointer”,transition:“all .2s”}}>
-<div style={{fontSize:18}}>{a.icon}</div>{a.label}
-</button>
-))}
-</div>
-</div>
-<div style={{…cardSt,border:`1px solid #2a2a2a`}}>
-<div style={{fontWeight:800,color:C.orange,marginBottom:10,fontSize:13}}>📊 Admin Dashboard · 3% Split Engine</div>
-<div style={{fontSize:24,fontWeight:900,color:C.white}}>{fmtRp(adminBalance)}</div>
-<div style={{fontSize:11,color:C.muted2}}>Total fee admin terkumpul dari semua transaksi</div>
-<div style={{marginTop:8,fontSize:11,color:C.muted2}}>Transaksi: {txList.filter(t=>t.type===“purchase”).length} · Withdraw: {txList.filter(t=>t.type===“withdraw”).length} · Top Up: {txList.filter(t=>t.type===“topup”).length}</div>
-</div>
-<div style={{...cardSt}}>
-<div style={{fontWeight:800,color:C.orange,marginBottom:10,fontSize:13}}>🏪 Saldo Penjual · 97% Auto-Split</div>
-{Object.entries(sellers).map(([id,s])=>(
-<div key={id} style={{padding:“11px 0”,borderBottom:`1px solid ${C.border}`}}>
-<div style={{display:“flex”,justifyContent:“space-between”,alignItems:“center”}}>
-<div>
-<div style={{fontWeight:700,color:C.text,fontSize:13}}>{s.name}</div>
-<div style={{fontSize:10,color:C.muted2}}>{s.bank}</div>
-<div style={{fontSize:10,color:C.muted2}}>Total earned: {fmtRp(s.totalEarned)}</div>
-<div style={{fontWeight:800,color:C.orange,fontSize:16,marginTop:2}}>{fmtRp(s.balance)}</div>
-</div>
-<Btn small onClick={()=>setWithdrawModal(id)}>{T.withdraw}</Btn>
-</div>
-</div>
-))}
-</div>
-<div style={{...cardSt}}>
-<div style={{fontWeight:800,color:C.orange,marginBottom:10,fontSize:13}}>📋 Transaksi Terbaru</div>
-{txList.length===0&&<div style={{color:C.muted,fontSize:13,textAlign:“center”,padding:“16px 0”}}>Belum ada transaksi</div>}
-{txList.slice(0,5).map(tx=>(
-<div key={tx.id} style={{padding:“8px 0”,borderBottom:`1px solid ${C.border}`,fontSize:12}}>
-<div style={{display:“flex”,justifyContent:“space-between”,fontWeight:700}}>
-<span style={{color:C.text}}>{tx.type===“purchase”?“🛒”:tx.type===“topup”?“⬆️”:tx.type===“withdraw”?“💸”:“➡️”} {tx.label}</span>
-<span style={{color:tx.type===“topup”?C.green:C.orange}}>{tx.type===“topup”?”+”:”-”}{fmtRp(tx.total)}</span>
-</div>
-<div style={{color:C.muted2,fontSize:10}}>{tx.date} {tx.time}{tx.fee?` · Fee ${fmtRp(tx.fee)}`:””}</div>
-</div>
-))}
-{txList.length>5&&<button onClick={()=>setModal(“history”)} style={{background:“none”,border:`1px solid ${C.border}`,borderRadius:8,padding:“7px”,width:“100%”,color:C.muted2,cursor:“pointer”,fontSize:12,marginTop:8}}>Lihat semua ({txList.length})</button>}
-</div>
-<div style={{height:16}}/>
-</div>
-);
-
-// ── CHAT SCREEN ──────────────────────────────
-const ChatScreen=()=>{
-const sendMsg=()=>{
-if(!chatInput.trim()||!activeChat)return;
-setChatMsgs(m=>({…m,[activeChat]:[…(m[activeChat]||[]),{from:“me”,msg:sanitize(chatInput.trim())}]}));
-setChatInput(””);
-};
-if(activeChat){
-const ct=CONTACTS.find(c=>c.id===activeChat);
-return(
-<div style={{height:“100%”,display:“flex”,flexDirection:“column”}}>
-<div style={{padding:“10px 14px”,borderBottom:`1px solid ${C.border}`,display:“flex”,alignItems:“center”,gap:10,flexShrink:0}}>
-<button onClick={()=>setActiveChat(null)} style={{background:“none”,border:“none”,color:C.orange,fontSize:18,cursor:“pointer”}}>←</button>
-<span style={{fontSize:22}}>{ct.avatar}</span>
-<div><div style={{fontWeight:800,color:C.white,fontSize:14}}>{ct.name}</div><div style={{fontSize:10,color:C.green}}>● Online</div></div>
-</div>
-<div style={{flex:1,overflowY:“auto”,padding:14,display:“flex”,flexDirection:“column”,gap:8}}>
-{(chatMsgs[activeChat]||[]).map((m,i)=>(
-<div key={i} style={{display:“flex”,justifyContent:m.from===“me”?“flex-end”:“flex-start”}}>
-<div style={{maxWidth:“78%”,padding:“9px 13px”,borderRadius:16,background:m.from===“me”?C.orange:C.card,color:m.from===“me”?C.black:C.text,fontSize:14,border:m.from===“me”?“none”:`1px solid ${C.border}`}}>{m.msg}</div>
-</div>
-))}
-</div>
-<div style={{padding:“8px 14px”,borderTop:`1px solid ${C.border}`,display:“flex”,gap:8,flexShrink:0}}>
-<input value={chatInput} onChange={e=>setChatInput(e.target.value)} onKeyDown={e=>e.key===“Enter”&&sendMsg()} placeholder=“Pesan…” style={{…inputSt,flex:1}}/>
-<Btn small onClick={sendMsg} style={{padding:“10px 16px”}}>→</Btn>
-</div>
-</div>
-);
-}
-return(
-<div style={{padding:“0 14px”}}>
-<div style={{padding:“8px 0 12px”,fontWeight:800,color:C.orange,fontSize:13}}>💬 Pesan</div>
-{CONTACTS.map(c=>(
-<div key={c.id} onClick={()=>setActiveChat(c.id)} style={{…cardSt,display:“flex”,alignItems:“center”,gap:12,cursor:“pointer”}}>
-<div style={{width:46,height:46,borderRadius:“50%”,background:C.card2,border:`2px solid ${c.unread>0?C.orange:C.border}`,display:“flex”,alignItems:“center”,justifyContent:“center”,fontSize:24,flexShrink:0}}>{c.avatar}</div>
-<div style={{flex:1,minWidth:0}}>
-<div style={{fontWeight:800,color:C.white,fontSize:14}}>{c.name}</div>
-<div style={{fontSize:12,color:C.muted2,overflow:“hidden”,textOverflow:“ellipsis”,whiteSpace:“nowrap”}}>{c.lastMsg}</div>
-</div>
-<div style={{textAlign:“right”,flexShrink:0}}>
-<div style={{fontSize:10,color:C.muted2}}>{c.time}</div>
-{c.unread>0&&<div style={{background:C.orange,color:C.black,borderRadius:“50%”,width:18,height:18,fontSize:9,fontWeight:900,display:“flex”,alignItems:“center”,justifyContent:“center”,marginTop:4,marginLeft:“auto”}}>{c.unread}</div>}
-</div>
-</div>
-))}
-</div>
-);
-};
-
-// ── AI SCREEN ────────────────────────────────
-const AIScreen=()=>(
-<div style={{height:“100%”,display:“flex”,flexDirection:“column”}}>
-<div style={{padding:“8px 16px 6px”,textAlign:“center”,flexShrink:0}}>
-<div style={{display:“inline-block”,background:`linear-gradient(135deg,${C.orange},${C.purple})`,borderRadius:10,padding:“3px 12px”}}>
-<span style={{fontSize:10,fontWeight:800,color:C.white,letterSpacing:1}}>ZAPP AI · Powered by Claude Sonnet</span>
-</div>
-</div>
-<div style={{flex:1,overflowY:“auto”,padding:“0 14px 8px”,display:“flex”,flexDirection:“column”,gap:10}}>
-{aiMsgs.map((m,i)=>(
-<div key={i} style={{display:“flex”,justifyContent:m.role===“user”?“flex-end”:“flex-start”,alignItems:“flex-end”,gap:6}}>
-{m.role===“assistant”&&<div style={{fontSize:18,flexShrink:0}}>🤖</div>}
-<div style={{maxWidth:“82%”,padding:“10px 14px”,borderRadius:18,background:m.role===“user”?C.orange:C.card,color:m.role===“user”?C.black:C.text,fontSize:13,lineHeight:1.6,border:m.role===“user”?“none”:`1px solid ${C.border}`,whiteSpace:“pre-wrap”}}>
-{m.content}
-</div>
-</div>
-))}
-{aiLoading&&<div style={{display:“flex”,gap:6,alignItems:“center”}}>
-<span style={{fontSize:18}}>🤖</span>
-<div style={{background:C.card,border:`1px solid ${C.border}`,borderRadius:16,padding:“10px 14px”,color:C.muted2,fontSize:12}}>{T.typing} <span style={{animation:“blink 1s infinite”}}>●●●</span></div>
-</div>}
-<div ref={aiEndRef}/>
-</div>
-<div style={{padding:“6px 14px 8px”,borderTop:`1px solid ${C.border}`,display:“flex”,gap:8,flexShrink:0}}>
-<input value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key===“Enter”&&!aiLoading&&doAI()} placeholder={T.aiPlaceholder} style={{…inputSt,flex:1}} disabled={aiLoading}/>
-<Btn small onClick={doAI} disabled={aiLoading} style={{padding:“10px 16px”}}>{T.send2}</Btn>
-</div>
-</div>
-);
-
-// ── ME SCREEN ────────────────────────────────
-const MeScreen=()=>(
-<div style={{height:“100%”,overflowY:“auto”,padding:“0 14px”}}>
-<div style={{textAlign:“center”,padding:“20px 0 16px”}}>
-<div style={{width:76,height:76,borderRadius:“50%”,background:`linear-gradient(135deg,${C.orange},${C.purple})`,display:“flex”,alignItems:“center”,justifyContent:“center”,fontSize:38,margin:“0 auto 10px”,boxShadow:`0 0 0 4px ${C.dark}, 0 0 0 6px ${C.orange}`}}>👤</div>
-<div style={{fontWeight:900,fontSize:22,color:C.white}}>Maarten</div>
-<div style={{fontSize:12,color:C.muted2,marginBottom:10}}>@maarten_zapp · ZAPP Creator ✓</div>
-<div style={{display:“inline-block”,background:`linear-gradient(90deg,${C.orange},${C.orangeD})`,borderRadius:20,padding:“3px 14px”,marginBottom:12}}>
-<span style={{fontSize:11,fontWeight:800,color:C.black}}>⚡ ZAPP Premium</span>
-</div>
-<div style={{display:“flex”,justifyContent:“center”,gap:28}}>
-{[[“12.4K”,T.followers],[“890”,T.following],[“4.8K”,T.likes]].map(([v,l])=>(
-<div key={l} style={{textAlign:“center”}}>
-<div style={{fontWeight:800,color:C.white,fontSize:16}}>{v}</div>
-<div style={{fontSize:10,color:C.muted2}}>{l}</div>
-</div>
-))}
-</div>
-</div>
-{[
-{icon:“💳”,label:“ZAPP Pay”,val:fmtRp(userWallet)},
-{icon:“🛒”,label:“Pesanan Saya”,val:`${txList.filter(t=>t.type==="purchase").length} order`},
-{icon:“❤️”,label:“Wishlist”,val:“24 item”},
-{icon:“⭐”,label:“Review Saya”,val:“12 review”},
-{icon:“🔔”,label:T.notify,val:`${notifCount} baru`,fn:()=>setNotifCount(0)},
-{icon:“🌐”,label:“Bahasa / Language”,val:LANGUAGES[lang].name,fn:()=>setShowLangMenu(true)},
-{icon:“🔒”,label:“Keamanan”,val:“Aktif 🔐”},
-{icon:“📞”,label:“Bantuan”,val:“24/7 Support”,fn:()=>showToast(“Support ZAPP siap membantu!”,“info”)},
-].map((it,i)=>(
-<div key={i} onClick={it.fn} style={{…cardSt,display:“flex”,alignItems:“center”,gap:12,cursor:it.fn?“pointer”:“default”,transition:“all .2s”}}>
-<span style={{fontSize:22}}>{it.icon}</span>
-<span style={{flex:1,fontWeight:600,color:C.text,fontSize:14}}>{it.label}</span>
-<span style={{fontSize:11,color:C.muted2}}>{it.val}</span>
-{it.fn&&<span style={{color:C.muted,fontSize:14}}>›</span>}
-</div>
-))}
-<div style={{height:16}}/>
-</div>
-);
-
-const SCREENS={feed:<FeedScreen/>,live:<LiveScreen/>,shop:<ShopScreen/>,pay:<PayScreen/>,chat:<ChatScreen/>,ai:<AIScreen/>,me:<MeScreen/>};
-
-return(
-<div style={{minHeight:“100vh”,background:”#030303”,display:“flex”,alignItems:“center”,justifyContent:“center”,fontFamily:”-apple-system,BlinkMacSystemFont,‘Segoe UI’,sans-serif”}}>
-<style>{`*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;} ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-track{background:#0a0a0a;} ::-webkit-scrollbar-thumb{background:#f97316;border-radius:2px;} @keyframes toastIn{from{transform:translateX(-50%) translateY(-16px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}} @keyframes blink{0%,100%{opacity:.2}50%{opacity:1}} input::placeholder{color:#383838;} input:focus{border-color:#f97316 !important;box-shadow:0 0 0 2px rgba(249,115,22,.15);} button:active{transform:scale(.95);}`}</style>
-
-```
-  {toast&&<Toast key={toast.id} msg={toast.msg} type={toast.type} onDone={()=>setToast(null)}/>}
-
-  {/* Language overlay */}
-  {showLangMenu&&(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.93)",zIndex:9500,display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={()=>setShowLangMenu(false)}>
-      <div style={{background:"#111",borderRadius:22,padding:22,width:"100%",maxWidth:400,border:`1px solid #2a2a2a`}} onClick={e=>e.stopPropagation()}>
-        <div style={{fontWeight:800,color:C.orange,marginBottom:16,fontSize:16}}>🌐 Pilih Bahasa</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-          {Object.values(LANGUAGES).map(l=>(
-            <button key={l.code} onClick={()=>{setLang(l.code);setShowLangMenu(false);showToast(`Bahasa: ${l.name}`,"info");}} style={{background:lang===l.code?"rgba(249,115,22,.15)":"transparent",border:`1.5px solid ${lang===l.code?C.orange:C.border}`,borderRadius:10,padding:"9px 12px",color:lang===l.code?C.orange:C.muted2,fontWeight:700,cursor:"pointer",fontSize:12,textAlign:"left",transition:"all .2s"}}>
-              {l.name}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  )}
-
-  {/* MODALS */}
-  {modal==="cart"&&(
-    <Modal title={`🛒 Keranjang (${cartQty} item)`} onClose={()=>setModal(null)}>
-      {cart.length===0?<div style={{color:C.muted,textAlign:"center",padding:20}}>Keranjang kosong</div>:
-      <>
-        {cart.map(item=>(
-          <div key={item.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"9px 0",borderBottom:`1px solid ${C.border}`}}>
-            <div style={{display:"flex",alignItems:"center",gap:8}}>
-              <span style={{fontSize:20}}>{item.img}</span>
-              <div>
-                <div style={{fontSize:13,fontWeight:600,color:C.text}}>{item.name}</div>
-                <div style={{fontSize:11,color:C.muted2}}>×{item.qty} · {fmtRp(item.price)}/pcs</div>
-              </div>
-            </div>
-            <span style={{fontWeight:800,color:C.orange,fontSize:13}}>{fmtRp(item.price*item.qty)}</span>
+  const Feed = () => (
+    <div>
+      <h2>🔥 Feed</h2>
+      {FEEDS.map((f) => {
+        const product = PRODUCTS.find((p) => p.id === f.productId);
+        return (
+          <div key={f.id} style={{ marginBottom: 20 }}>
+            <b>{f.user}</b>
+            <p>{f.text}</p>
+            {product && (
+              <button onClick={() => addToCart(product)}>
+                Beli {product.name}
+              </button>
+            )}
           </div>
-        ))}
-        <div style={{display:"flex",justifyContent:"space-between",padding:"12px 0",borderBottom:`1px solid ${C.border}`}}>
-          <span style={{color:C.text,fontWeight:700}}>Subtotal</span>
-          <span style={{color:C.white,fontWeight:800,fontSize:16}}>{fmtRp(cartTotal)}</span>
-        </div>
-        <div style={{fontSize:11,color:C.muted2,padding:"6px 0 12px"}}>
-          Admin fee (3%): {fmtRp(Math.round(cartTotal*.03))} · Seller (97%): {fmtRp(Math.round(cartTotal*.97))}
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          <Btn active={false} full onClick={()=>{setCart([]);setModal(null);}}>Hapus</Btn>
-          <Btn full onClick={checkout}>✓ {T.checkout}</Btn>
-        </div>
-      </>}
-    </Modal>
-  )}
-  {modal==="topup"&&(
-    <Modal title={`⬆️ ${T.topup}`} onClose={()=>setModal(null)}>
-      <input value={topupAmt} onChange={e=>setTopupAmt(e.target.value.replace(/\D/g,""))} placeholder={T.enterAmount} style={{...inputSt,marginBottom:10}} type="text" maxLength={12}/>
-      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
-        {[50000,100000,200000,500000,1000000].map(v=>(
-          <button key={v} onClick={()=>setTopupAmt(String(v))} style={{background:topupAmt===String(v)?C.orange:"transparent",border:`1.5px solid ${topupAmt===String(v)?C.orange:C.border}`,borderRadius:8,padding:"5px 10px",color:topupAmt===String(v)?C.black:C.muted2,fontWeight:700,cursor:"pointer",fontSize:11}}>
-            {fmtRp(v)}
-          </button>
-        ))}
-      </div>
-      <Btn full onClick={doTopup}>{T.topup}</Btn>
-    </Modal>
-  )}
-  {sendModal&&(
-    <Modal title={`➡️ ${T.send}`} onClose={()=>setSendModal(false)}>
-      <input value={sendTo} onChange={e=>setSendTo(e.target.value.slice(0,60))} placeholder="Nomor HP / Username ZAPP" style={{...inputSt,marginBottom:8}} maxLength={60}/>
-      <input value={sendAmt} onChange={e=>setSendAmt(e.target.value.replace(/\D/g,""))} placeholder={T.enterAmount} style={{...inputSt,marginBottom:14}} type="text" maxLength={12}/>
-      <Btn full onClick={doSend}>{T.send} →</Btn>
-    </Modal>
-  )}
-  {withdrawModal&&(
-    <Modal title={`💸 ${T.withdraw} · ${sellers[withdrawModal]?.name}`} onClose={()=>setWithdrawModal(null)}>
-      <div style={{marginBottom:10,fontSize:13}}>
-        <span style={{color:C.muted2}}>Saldo: </span>
-        <span style={{fontWeight:800,color:C.orange}}>{fmtRp(sellers[withdrawModal]?.balance)}</span>
-      </div>
-      <input value={withdrawAmt} onChange={e=>setWithdrawAmt(e.target.value.replace(/\D/g,""))} placeholder={T.enterAmount} style={{...inputSt,marginBottom:6}} type="text" maxLength={12}/>
-      <div style={{fontSize:10,color:C.muted2,marginBottom:14}}>🔒 Proses via Xendit Disbursement API → {sellers[withdrawModal]?.bank}</div>
-      <div style={{display:"flex",gap:8}}>
-        <Btn active={false} full onClick={()=>setWithdrawModal(null)}>{T.cancel}</Btn>
-        <Btn full onClick={doWithdraw}>{T.withdraw} ✓</Btn>
-      </div>
-    </Modal>
-  )}
-  {modal==="history"&&(
-    <Modal title="📋 Riwayat Transaksi" onClose={()=>setModal(null)}>
-      <div style={{maxHeight:380,overflowY:"auto"}}>
-        {txList.length===0&&<div style={{color:C.muted,textAlign:"center",padding:24}}>Belum ada transaksi</div>}
-        {txList.map(tx=>(
-          <div key={tx.id} style={{padding:"8px 0",borderBottom:`1px solid ${C.border}`}}>
-            <div style={{display:"flex",justifyContent:"space-between",fontWeight:700,fontSize:13}}>
-              <span style={{color:C.text}}>{tx.type==="purchase"?"🛒":tx.type==="topup"?"⬆️":tx.type==="withdraw"?"💸":"➡️"} {tx.label}</span>
-              <span style={{color:tx.type==="topup"?C.green:C.orange}}>{tx.type==="topup"?"+":"-"}{fmtRp(tx.total)}</span>
-            </div>
-            <div style={{color:C.muted2,fontSize:10}}>{tx.date} {tx.time}</div>
-          </div>
-        ))}
-      </div>
-    </Modal>
-  )}
-
-  {/* Phone Frame */}
-  <div style={{
-    width:393,height:852,
-    background:C.black,borderRadius:50,
-    border:"3px solid #1a1a1a",overflow:"hidden",
-    display:"flex",flexDirection:"column",
-    boxShadow:"0 60px 140px rgba(0,0,0,.95),0 0 0 1px #2a2a2a,inset 0 0 0 1px #080808,0 0 80px rgba(249,115,22,.04)",
-    position:"relative",
-  }}>
-    {/* Status bar */}
-    <div style={{padding:"14px 28px 6px",display:"flex",justifyContent:"space-between",alignItems:"center",background:"rgba(8,8,8,.98)",flexShrink:0}}>
-      <span style={{fontSize:13,fontWeight:700,color:C.text,fontVariantNumeric:"tabular-nums"}}>{clock.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</span>
-      <div style={{width:126,height:34,background:C.black,borderRadius:20,border:`1px solid #1e1e1e`,display:"flex",alignItems:"center",justifyContent:"center"}}>
-        <span style={{fontWeight:900,fontSize:15,letterSpacing:1.5}}>
-          <span style={{color:C.orange}}>Z</span>
-          <span style={{color:C.white}}>APP</span>
-        </span>
-      </div>
-      <div style={{display:"flex",gap:5,alignItems:"center"}}>
-        <span style={{fontSize:9,color:C.orange,fontWeight:700}}>●</span>
-        <span style={{fontSize:10,color:C.muted2,fontWeight:600}}>5G</span>
-        <span style={{fontSize:14}}>🔋</span>
-      </div>
+        );
+      })}
     </div>
+  );
 
-    {/* Sub header */}
-    <div style={{padding:"5px 16px 7px",background:"rgba(8,8,8,.96)",display:"flex",justifyContent:"space-between",alignItems:"center",borderBottom:`1px solid ${C.border}`,flexShrink:0}}>
-      <button onClick={()=>setShowLangMenu(true)} style={{background:"none",border:`1px solid ${C.border}`,borderRadius:8,color:C.muted2,fontSize:11,padding:"3px 8px",cursor:"pointer",fontWeight:600}}>
-        🌐 {LANGUAGES[lang].code.toUpperCase()}
-      </button>
-      <div style={{fontSize:11,fontWeight:700,color:C.muted2}}>
-        💳 {fmtRp(userWallet)}
-      </div>
-      <button onClick={()=>setNotifCount(0)} style={{background:"none",border:"none",cursor:"pointer",position:"relative",padding:4}}>
-        <span style={{fontSize:18}}>🔔</span>
-        {notifCount>0&&<span style={{position:"absolute",top:0,right:0,background:C.orange,color:C.black,borderRadius:"50%",width:16,height:16,fontSize:9,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{notifCount}</span>}
-      </button>
-    </div>
-
-    {/* Screen */}
-    <div style={{flex:1,overflow:"hidden",position:"relative"}}>
-      {SCREENS[tab]}
-    </div>
-
-    {/* Nav bar */}
-    <div style={{display:"flex",justifyContent:"space-around",alignItems:"center",borderTop:`1px solid ${C.border}`,padding:"6px 4px 14px",background:"rgba(8,8,8,.99)",flexShrink:0}}>
-      {[
-        {id:"feed",icon:"🏠",getLabel:t=>t.home},
-        {id:"live",icon:"📡",getLabel:t=>t.live},
-        {id:"shop",icon:"🛍️",getLabel:t=>t.shop,badge:cartQty},
-        {id:"pay",icon:"💳",getLabel:t=>t.pay},
-        {id:"chat",icon:"💬",getLabel:t=>t.chat,badge:CONTACTS.reduce((s,c)=>s+c.unread,0)},
-        {id:"ai",icon:"🤖",getLabel:t=>t.ai},
-        {id:"me",icon:"👤",getLabel:t=>t.me},
-      ].map(nt=>(
-        <button key={nt.id} onClick={()=>setTab(nt.id)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:2,padding:"3px 8px",position:"relative",transition:"all .2s"}}>
-          {tab===nt.id&&<div style={{position:"absolute",top:-7,left:"50%",transform:"translateX(-50%)",width:24,height:3,background:C.orange,borderRadius:2}}/>}
-          <span style={{fontSize:tab===nt.id?22:18,transition:"all .2s",filter:tab===nt.id?"none":"grayscale(30%)"}}>{nt.icon}</span>
-          <span style={{fontSize:9,fontWeight:700,color:tab===nt.id?C.orange:C.muted,transition:"all .2s",lineHeight:1}}>{nt.getLabel(T)}</span>
-          {nt.badge>0&&<div style={{position:"absolute",top:1,right:2,background:C.orange,color:C.black,borderRadius:"50%",width:14,height:14,fontSize:8,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{nt.badge}</div>}
-        </button>
+  const Shop = () => (
+    <div>
+      <h2>🛍 Shop</h2>
+      {PRODUCTS.map((p) => (
+        <div key={p.id}>
+          {p.name} - Rp {p.price.toLocaleString()}
+          <button onClick={() => addToCart(p)}>Tambah</button>
+        </div>
       ))}
     </div>
-  </div>
-</div>
-```
+  );
 
-);
+  const Pay = () => (
+    <div>
+      <h2>💳 Wallet</h2>
+      <p>Saldo: Rp {balance.toLocaleString()}</p>
+
+      <h3>Keranjang ({cart.length})</h3>
+      <button onClick={checkout}>Checkout</button>
+    </div>
+  );
+
+  return (
+    <div style={{ padding: 20, background: "black", color: "white", minHeight: "100vh" }}>
+      <h1>ZAPP SUPER APP 🚀</h1>
+
+      {/* NAV */}
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={() => setTab("feed")}>Feed</button>
+        <button onClick={() => setTab("shop")}>Shop</button>
+        <button onClick={() => setTab("pay")}>Pay</button>
+      </div>
+
+      {/* SCREEN */}
+      {tab === "feed" && <Feed />}
+      {tab === "shop" && <Shop />}
+      {tab === "pay" && <Pay />}
+    </div>
+  );
 }
